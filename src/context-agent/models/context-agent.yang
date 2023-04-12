@@ -44,7 +44,7 @@ module context-agent {
     }
 
     // Use case: BGP neighbor state changes
-    augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-netinst:bgp/srl_nokia-bgp:neighbor" {
+    augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-bgp:bgp/srl_nokia-bgp:neighbor" {
       uses context;
     }
 
