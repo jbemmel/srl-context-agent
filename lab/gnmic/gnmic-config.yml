@@ -10,11 +10,11 @@ skip-verify: true
 encoding: json_ietf
 
 targets:
-  clab-srl-docter-lab-spine1:
-  clab-srl-docter-lab-spine2:
-  clab-srl-docter-lab-leaf1:
-  clab-srl-docter-lab-leaf2:
-  clab-srl-docter-lab-leaf3:
+  clab-context-lab-spine1:
+  clab-context-lab-spine1:
+  clab-context-lab-leaf1:
+  clab-context-lab-leaf2:
+  clab-context-lab-leaf3:
 
 subscriptions:
   srl_if_stats:
