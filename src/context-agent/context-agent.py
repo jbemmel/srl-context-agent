@@ -390,7 +390,7 @@ class MonitoringThread(Thread):
                             logging.error( f"Exception during filter {filter}: {ex}" )
 
                       # For sampled state, reset the interval timer
-                      sample_period = o['conditions']['sample_period']['value']
+                      sample_period = o['sample_period']['value']
                       if sample_period != "0":
                           if 'timer' in o:
                               if key in o['timer']:
@@ -421,8 +421,8 @@ class MonitoringThread(Thread):
                         #           unique_count_matches[ g ] = True
                         #        continue  # Skip updating invidivual values
 
-                      reports = o['reports']
-                      if reports != []:
+                      reports = o['collect']
+                      if reports:
                         def _lookup(param): # match looks like {x}
                            _var = param[1:-1]  # Strip '{' and '}'
                            _val = re.match( f".*\[{_var}=([^]]+)\].*", key)
@@ -451,7 +451,7 @@ class MonitoringThread(Thread):
                       # Update historical data, indexed by key. Remove old entries
                       history = update_history( int( update['timestamp'] ), o, history_key, updates )
                       s_index = key.rindex('/') + 1
-                      sample = o['conditions']['sample_period']['value']
+                      sample = o['sample_period']['value']
                       # try:
                     #      Update_Observation( o, int( update['timestamp'] ), f"{key[s_index:]}={value} sample={sample}",
                     #                          int(sample), updates, history,

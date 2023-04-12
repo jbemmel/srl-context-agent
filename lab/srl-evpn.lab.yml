@@ -1,7 +1,7 @@
 name: context-lab # Auto-configuring CLOS fabric with EVPN VXLAN overlay and EVPN MC-LAG
 
 mgmt:
-  network: netlab_mgmt # To connect Netbox to this network
+  network: clab_mgmt # To connect Prometheus et al. to this network
 
 topology:
   kinds:
@@ -12,7 +12,7 @@ topology:
       type: ixrd2 # See https://www.nokia.com/networks/products/7250-interconnect-router/
       image: srl/context-agent:latest
       extras:
-        srl-agents: [ ../srl-self-organizing/auto-config-agent.yml, context-agent.yml ]
+        srl-agents: [ ../../srl-self-organizing/auto-config-agent.yml, ../context-agent.yml ]
       env:
         SPINES: 2 # TODO subtract this from host ID
       binds:
@@ -23,9 +23,9 @@ topology:
        set /system gnmi-server unix-socket admin-state enable
        set /auto-config-agent gateway ipv4 10.0.0.1/24
        set /auto-config-agent igp ospf evpn model asymmetric-irb auto-lags encoded-ipv6 bgp-peering ipv4 overlay-as 65000
-       set /context-agent enrich bgp-peers path "/network-instance[name=*]/protocols/bgp/neighbor/session-state"
-       set /context-agent enrich bgp-peers collect "/interface[name=ethernet/1-49]/oper-state"
-       set /context-agent enrich bgp-peers collect "/interface[name=ethernet/1-50]/oper-state"
+       set /context-agent enrich bgp-peers path "/network-instance[name=*]/protocols/bgp/neighbor[peer-address=*]/session-state"
+       set /context-agent enrich bgp-peers collect "/interface[name=ethernet-1/49]/oper-state"
+       set /context-agent enrich bgp-peers collect "/interface[name=ethernet-1/50]/oper-state"
 
   nodes:
     leaf1:  { kind: srl, group: leaves }
