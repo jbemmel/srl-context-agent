@@ -37,6 +37,13 @@ topology:
     h1: { kind: linux, group: hosts }
     h2: { kind: linux, group: hosts }
 
+    gnmic:
+      kind: linux
+      image: ghcr.io/openconfig/gnmic:latest
+      binds:
+      - gnmic/gnmic-config.yml:/gnmic-config.yml:ro
+      cmd: --config /gnmic-config.yml --log subscribe
+
   links:
     - endpoints: ["leaf1:e1-49","spine1:e1-1"]  # 100G port
     - endpoints: ["leaf2:e1-49","spine1:e1-2"]

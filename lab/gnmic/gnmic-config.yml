@@ -1,0 +1,117 @@
+# Copyright 2023 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+username: admin
+password: NokiaSrl1!
+port: 57400
+timeout: 10s
+skip-verify: true
+encoding: json_ietf
+
+targets:
+  clab-srl-docter-lab-spine1:
+  clab-srl-docter-lab-spine2:
+  clab-srl-docter-lab-leaf1:
+  clab-srl-docter-lab-leaf2:
+  clab-srl-docter-lab-leaf3:
+
+subscriptions:
+  srl_if_stats:
+    paths:
+      - /interface[name=ethernet-1/*]/statistics
+    mode: stream
+    stream-mode: sample
+    sample-interval: 20s
+
+  srl_cpu:
+    paths:
+      - /platform/control[slot=*]/cpu[index=all]/total
+    mode: stream
+    stream-mode: sample
+    sample-interval: 20s
+
+  srl_mem:
+    paths:
+      - /platform/control[slot=*]/memory
+    mode: stream
+    stream-mode: sample
+    sample-interval: 20s
+
+  srl_bgp_stats:
+    paths:
+      - /network-instance[name=*]/protocols/bgp/statistics
+    mode: stream
+    stream-mode: sample
+    sample-interval: 20s
+
+  srl_ipv4_routes:
+    paths:
+      - /network-instance[name=*]/route-table/ipv4-unicast/statistics/
+    mode: stream
+    stream-mode: sample
+    sample-interval: 20s
+
+  srl_ipv6_routes:
+    paths:
+      - /network-instance[name=*]/route-table/ipv6-unicast/statistics/
+    mode: stream
+    stream-mode: sample
+    sample-interval: 20s
+
+  srl_apps:
+    paths:
+      - /system/app-management/application[name=*]
+    mode: stream
+    stream-mode: sample
+    sample-interval: 20s
+
+  demo_context-agent:
+    paths:
+      - /network-instance[name=*]/protocols/bgp/neighbor[peer-address=*]/context
+    mode: stream
+    stream-mode: on_change
+
+  srl_lldp_data:
+    paths:
+      - /interface[name=ethernet-1/*]/description
+    mode: stream
+    stream-mode: on_change
+
+outputs:
+  prom:
+    type: prometheus
+    listen: :9273
+    path: /metrics
+    metric-prefix: gnmic
+    append-subscription-name: true
+    export-timestamps: true
+    debug: false
+    event-processors:
+      - trim-prefixes
+
+  # JvB: added, for non-numeric data
+  # influxdb-output:
+  #   type: influxdb
+  #   url: http://clab-srl-docter-lab-influxdb:8086
+  #   bucket: telegraf # db name
+  #   # token: gnmic:gnmic # username:password
+  #   metric-prefix: gnmic
+  #   batch-size: 1000
+  #   flush-timer: 10s
+
+  # stdout:
+  #   type: file
+  #   file-type: stdout
+  #   event-processors:
+  #     - proc-convert-strings-to-int
+  #     - trim-prefixes
+
+processors:
+  trim-prefixes:
+    event-strings:
+      value-names:
+        - ".*"
+      transforms:
+        - path-base:
+            apply-on: "name"
