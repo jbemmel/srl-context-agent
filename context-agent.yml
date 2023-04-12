@@ -14,3 +14,4 @@ context_agent:
        source-directories:
            - "/opt/demo-agents/context-agent/models/"
            - "/opt/srlinux/models/srl_nokia/models/common/"
+           - "/opt/srlinux/models/srl_nokia/models/network-instance/"
