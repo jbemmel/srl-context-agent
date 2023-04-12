@@ -1,0 +1,102 @@
+module context-agent {
+
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_test/context-agent";
+
+    prefix "context_agent";
+
+    import srl_nokia-common {
+      prefix srl_nokia-comm;
+    }
+    import srl_nokia-network-instance {
+      prefix srl_nokia-netinst;
+    }
+    import srl_nokia-bgp {
+      prefix srl_nokia-bgp;
+    }
+
+    // Note that this module needs to be in the path for source-directories
+    import srl_nokia-extensions {
+      prefix srl_nokia-ext;
+    }
+
+    revision "2023-04-12" {
+        description "Initial revision";
+        reference "TBD";
+    }
+
+    grouping context {
+      description "Generic context to augment selected YANG model paths";
+
+      container context {
+        presence "context container";
+        srl_nokia-ext:stream-mode on_change;
+        config false;
+
+        list data {
+         key path;
+         leaf path { type string; }
+         leaf value { type string; }
+        }
+      }
+    }
+
+    // Use case: BGP neighbor state changes
+    augment "/srl_nokia-netinst:network-instance/srl_nokia-netinst:protocols/srl_nokia-netinst:bgp/srl_nokia-bgp:neighbor" {
+      uses context;
+    }
+
+    grouping context-agent-top {
+        description "Top level grouping for context agent sample app";
+
+        container context-agent {
+            presence "presence container";
+            srl_nokia-ext:stream-mode on_change;
+
+            description "Top level enclosing container for context agent sample app
+                         config and operational state data";
+
+            list enrich {
+                key name;
+                leaf name { type string; mandatory "true"; }
+                leaf path {
+                  description "YANG path to subscribe to";
+                  type string;
+                  mandatory "true";
+                }
+                leaf sample-period {
+                  description "Monitoring interval in seconds, default 0=on change";
+                  type uint16;
+                  default 0;
+                }
+
+                leaf condition {
+                  description "Optional expression to filter events, for example '==idle'";
+                  type string;
+                }
+
+                list collect {
+                  key path;
+                  ordered-by user; // because values can be referenced by index
+                  description "Set of YANG paths to collect upon on-change event";
+                  min-elements 1;
+
+                  leaf path {
+                    description "Path to local state variable to collect";
+                    type string;
+                    mandatory "true";
+                  }
+                  leaf value {
+                    description "Optional Python expression to calculate a value to report";
+                    type string;
+                  }
+                }
+            } // end enrich
+        } // end context-agent
+    } // end grouping
+
+    // data definition statements
+    uses context-agent-top;
+}
