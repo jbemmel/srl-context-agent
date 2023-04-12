@@ -223,15 +223,15 @@ class MonitoringThread(Thread):
 
       def update_history( ts_ns, o, key, updates ):
           history = o['history'][ key ] if key in o['history'] else {}
-          if 'history_window' in o['conditions']:
-            window = ts_ns - int(o['conditions']['history_window']['value']) * 1000000000 # X seconds ago
-          else:
-            window = 0
+          # if 'history_window' in o['conditions']:
+        #     window = ts_ns - int(o['conditions']['history_window']['value']) * 1000000000 # X seconds ago
+          # else:
+          window = 0
 
-          if 'history_items' in o['conditions']:
-            max_items = int(o['conditions']['history_items']['value'])
-          else:
-            max_items = 0
+          # if 'history_items' in o['conditions']:
+        #     max_items = int(o['conditions']['history_items']['value'])
+          # else:
+          max_items = 0
 
           for path, val in updates:
              subitem = history[path] if path in history else []
