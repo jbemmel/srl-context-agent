@@ -117,20 +117,21 @@ def Handle_Notification(obj, state):
                 if obj.config.key.js_path == ".context_agent.enrich":
 
                     name = obj.config.key.keys[0]
-                    # Can be empty
-                    collects = ([ i['value'] for i in data['enrich']['collect'] ] if 'enrich' in data else [])
                     if name in state.observations:
-                       state.observations[ name ].update( { 'collects': collects, **data } )
+                       state.observations[ name ].update( data['enrich'] )
                     else:
-                       state.observations[ name ] = { 'collects': collects, **data }
+                       state.observations[ name ] = data['enrich']
                 elif obj.config.key.js_path == ".context_agent.enrich.collect":
                     name = obj.config.key.keys[0]
-                    path = obj.config.key.keys[1]  # XXX only supports single path per observation for now
+                    path = obj.config.key.keys[1]  # Path to collect
                     if name in state.observations:
-                       state.observations[ name ].update( { 'path': path, **data } )
+                       if 'collect' in state.observations[ name ]:
+                         state.observations[ name ]['collect'].update( { path : data } )
+                       else:
+                         state.observations[ name ]['collect'] = { path: data }
                     else:
                        logging.info( f"Check insertion order: {name}" )
-                       state.observations[ name ] = { 'path' : path, **data }
+                       state.observations[ name ] = { 'collect' : { path: data } }
                 else:
                     logging.warning( f"Unhandled path: {obj.config.key.js_path}" )
                 return True
@@ -182,10 +183,10 @@ class MonitoringThread(Thread):
       subscribe = {
         'subscription': [
             {
-                'path': value['path'],
+                'path': value['path']['value'],
                 # 'mode': 'on_change'
-                'mode': 'on_change' if value['conditions']['sample_period']['value'] == '0' else 'sample',
-                'sample_interval':  int(value['conditions']['sample_period']['value']) * 1000000000 # in ns
+                'mode': 'on_change' if value['sample_period']['value'] == '0' else 'sample',
+                'sample_interval':  int(value['sample_period']['value']) * 1000000000 # in ns
             } for key,value in self.observations.items()
         ],
         'use_aliases': False,
@@ -203,22 +204,11 @@ class MonitoringThread(Thread):
           return regex.replace('*','.*').replace('[','\[').replace(']','\]')
 
       for name,atts in self.observations.items():
-          path = atts['path']     # normalized in pygnmi patch
-          update_match = atts['conditions']['update_path_match']['value']
+          path = atts['path']['value']     # normalized in pygnmi patch
           obj = { 'name': name, 'history': {}, 'last_known': {}, 'prev_known': {}, **atts }
           # range_match = re.match("(.*)(\\[\d+[-]\d+\\])(.*)",path)
 
-          # Turn path into a Python regex
-          if update_match!="":
-             regexes.append( (re.compile(update_match),obj) )
-             #if range_match:
-             #   logging.warning( f"update_match overrides range match in gnmi-path: {path}" )
-          #elif range_match:
-          #     p1 = fix( range_match.groups()[0] )
-          #     r  = range_match.groups()[1]
-          #     p2 = fix( range_match.groups()[2] )
-          #     regex = p1 + r + p2
-          elif '*' in path:
+          if '*' in path:
              regexes.append( (re.compile( fix(path) ),obj) )
           else:
              lookup[ path ] = obj
